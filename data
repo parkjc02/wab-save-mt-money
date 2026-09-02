@@ -1,0 +1,32 @@
+{
+  "meta": {
+    "baseCurrency": "KRW",
+    "lastUpdated": "2026-09-01T09:00:00+09:00",
+    "exchangeRate": {
+      "USDKRW": 1385.5,
+      "updatedAt": "2026-09-01T09:00:00+09:00"
+    },
+    "goalAmount": 100000000
+  },
+
+  "holdings": [],
+
+  "history": [
+    { "date": "2026-09-01", "totalAsset": 0 }
+  ],
+
+  "marketEvents": [
+    {
+      "id": "ev-001",
+      "date": "2026-09-05",
+      "title": "미국 8월 고용보고서 발표",
+      "importance": "HIGH"
+    },
+    {
+      "id": "ev-002",
+      "date": "2026-09-12",
+      "title": "미국 8월 CPI 발표",
+      "importance": "HIGH"
+    }
+  ]
+}
