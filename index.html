@@ -1,236 +1,278 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-theme="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PLC 접점 검색기</title>
-    <style>
-        body { font-family: 'Malgun Gothic', sans-serif; padding: 10px; background-color: #f4f4f4; margin: 0; }
-        .container { max-width: 100%; margin: auto; background: white; padding: 15px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); position: relative; }
-        
-        /* [추가] 우측 상단 로고 스타일 */
-        .top-logo {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            height: 40px; /* 크기는 적절히 조절하세요 */
-            width: 80px;
-        }
+  <link rel="shortcut icon" href="data:image/x-icon;," type="image/x-icon">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MY ASSET · 개인 자산관리 대시보드</title>
 
-        h2 { text-align: center; font-size: 1.2rem; color: #333; margin-bottom: 15px; margin-top: 5px; }
-        
-        /* 필터 버튼 */
-        .filter-group { display: flex; gap: 4px; margin-bottom: 10px; flex-wrap: wrap; }
-        .filter-btn { 
-            flex: 1; min-width: 65px; padding: 10px 2px; 
-            border: 1px solid #007bff; background-color: white; color: #007bff; 
-            border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 13px; outline: none; 
-        }
-        .filter-btn.active { background-color: #007bff; color: white; }
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.css" />
+  <link rel="stylesheet" href="css/style.css" />
 
-        /* 검색창 영역 */
-        .search-container { position: relative; width: 100%; margin-bottom: 10px; }
-        #searchInput { 
-            width: 100%; padding: 12px 40px 12px 12px; 
-            border: 2px solid #007bff; border-radius: 8px; font-size: 18px; 
-            box-sizing: border-box; outline: none; 
-        }
-        .clear-btn { 
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            background: #ccc; color: white; width: 24px; height: 24px; 
-            border-radius: 50%; text-align: center; line-height: 22px; 
-            cursor: pointer; font-size: 16px; font-weight: bold; display: none; user-select: none;
-        }
-
-        .count-info { font-size: 0.8em; color: #666; margin-bottom: 8px; text-align: right; font-weight: bold; }
-
-        /* 테이블 영역 */
-        .table-wrapper { overflow-x: auto; max-height: 65vh; border: 1px solid #ddd; border-radius: 4px; overflow-y: auto; }
-        table { width: 100%; border-collapse: collapse; font-size: 14px; }
-        th, td { padding: 10px 8px; border: 1px solid #ddd; text-align: left; word-break: break-all; }
-        th { background-color: #007bff; color: white; position: sticky; top: 0; z-index: 10; }
-        td:first-child { width: 25%; font-weight: bold; background-color: #fcfcfc; }
-        .rtb-cell { color: #d9534f; font-weight: bold; font-size: 12px; }
-        
-        .no-result { text-align: center; padding: 30px; color: #888; display: none; }
-        .bottom-spacer { height: 50px; }
-
-        /* 최상단 이동 버튼 스타일 */
-        #topBtn {
-            position: fixed; bottom: 25px; right: 25px; z-index: 999;
-            width: 50px; height: 50px; background-color: #007bff;
-            color: white; border: none; border-radius: 50%;
-            font-size: 20px; font-weight: bold; cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            display: none; align-items: center; justify-content: center;
-            -webkit-appearance: none;
-        }
-    </style>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-<div class="container">
-    <img src="hyundai.png" alt="Hyundai Logo" class="top-logo">
-    
-    <h2>🛠 PLC 접점 검색기</h2>
-    
-    <div class="filter-group">
-        <button id="btn-ALL" class="filter-btn active" onclick="setFilter('ALL')">전체</button>
-        <button id="btn-주요접점" class="filter-btn" onclick="setFilter('주요접점')">주요접점</button>
-        <button id="btn-X" class="filter-btn" onclick="setFilter('X')">X접점</button>
-        <button id="btn-Y" class="filter-btn" onclick="setFilter('Y')">Y접점</button>
-        <button id="btn-ML" class="filter-btn" onclick="setFilter('ML')">M/L코일</button>
-    </div>
+<header class="app-header">
+  <div class="header-left">
+    <h1 class="logo">MY ASSET</h1>
+    <p class="tagline">개인 자산관리 대시보드</p>
+  </div>
 
-    <div id="countInfo" class="count-info">데이터 로딩 중...</div>
-
-    <div class="search-container">
-        <input type="text" id="searchInput" placeholder="검색어 입력 (예: 리프트, 92)" onkeyup="handleSearch(this)" inputmode="search">
-        <div id="clearBtn" class="clear-btn" onclick="clearSearch()">×</div>
+  <div class="header-right">
+    <div class="header-meta" style="flex-direction: row; align-items: center; gap: 8px;">
+      <span id="todayDate" class="today-date"></span>
+      <div style="display:flex; align-items:center; gap:4px; font-size:12px; color:var(--color-text-secondary);">
+        <label for="headerExchangeRate">환율(USD):</label>
+        <input type="number" id="headerExchangeRate" step="0.5" style="width: 75px; background: var(--color-surface-2); border: 1px solid var(--color-border); color: var(--color-text-primary); border-radius: 4px; padding: 2px 6px; font-size: 12px; text-align: right;" />
+        <button type="button" id="btnApplyExchangeRate" class="btn-sm" style="padding: 2px 8px;">적용</button>
+      </div>
     </div>
-    
-    <div id="scrollTarget" class="table-wrapper">
-        <table>
+    <button id="btnRefresh" class="icon-btn" title="새로고침" aria-label="새로고침">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12a9 9 0 1 1-3-6.7"/><path d="M21 3v6h-6"/></svg>
+    </button>
+    <button id="btnThemeToggle" class="icon-btn" title="다크모드 전환" aria-label="다크모드 전환">
+      <svg id="themeIcon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z"/></svg>
+    </button>
+  </div>
+</header>
+
+<main class="dashboard">
+
+  <section class="summary-grid" aria-label="핵심 자산 요약">
+    <article class="card summary-card summary-card--primary">
+      <p class="card-label">총 자산</p>
+      <p class="card-value" id="totalAssetValue">-</p>
+      <p class="card-sub" id="totalAssetChange"><span class="change-label">오늘</span></p>
+    </article>
+
+    <article class="card summary-card">
+      <p class="card-label">투자 자산</p>
+      <p class="card-value" id="investmentAssetValue">-</p>
+      <p class="card-sub-static">주식 · ETF · 가상자산 · 금</p>
+    </article>
+
+    <article class="card summary-card">
+      <p class="card-label">현금성 자산</p>
+      <p class="card-value" id="cashAssetValue">-</p>
+      <p class="card-sub-static">현금 · 예금</p>
+    </article>
+
+    <article class="card summary-card">
+      <p class="card-label">전월 대비 수익률</p>
+      <p class="card-value" id="monthlyReturnValue">-</p>
+      <p class="card-sub-static">매월 1일 기준</p>
+    </article>
+  </section>
+
+  <!-- 좌측/우측 레이아웃 변경 (왼쪽: 보유자산 / 오른쪽: 자산추이, 자산배분, 일정) -->
+  <div class="main-grid" style="grid-template-columns: 1.1fr 0.9fr; gap: 20px;">
+
+    <!-- LEFT COLUMN: 보유 자산 -->
+    <div class="left-column">
+      <section class="card holdings-card" style="height: 100%;">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">보유 자산</h2>
+            <p class="card-desc">등록된 종목 및 현금 자산 현황</p>
+          </div>
+          <button type="button" class="btn-primary" id="btnAddAsset">+ 자산 추가</button>
+        </div>
+
+        <div class="table-scroll">
+          <table class="holdings-table">
             <thead>
-                <tr><th>접점</th><th>코멘트</th><th>RTB</th></tr>
+              <tr>
+                <th>자산명</th>
+                <th>구분</th>
+                <th>수량</th>
+                <th>평균 매수가</th>
+                <th>현재가</th>
+                <th>평가금액</th>
+                <th>수익률</th>
+                <th>관리</th>
+              </tr>
             </thead>
-            <tbody id="resultBody"></tbody>
-        </table>
-        <div id="noData" class="no-result">🔍 결과가 없습니다.</div>
+            <tbody id="holdingsTableBody">
+            </tbody>
+          </table>
+        </div>
+
+        <div class="holdings-list-mobile" id="holdingsListMobile"></div>
+      </section>
     </div>
-    <div class="bottom-spacer"></div>
+
+    <!-- RIGHT COLUMN: 자산 추이, 목표 자산/자산 배분, 마켓 일정 -->
+    <div class="right-column" style="display: flex; flex-direction: column; gap: 20px;">
+      
+      <!-- 자산 추이 -->
+      <section class="card chart-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">자산 추이</h2>
+            <p class="card-desc">기간별 자산 변동 내역 (매월 1일 기준)</p>
+          </div>
+          <div class="chart-header-right">
+            <span class="chart-current-value" id="chartCurrentValue">-</span>
+            <span class="chart-period-return" id="chartPeriodReturn">-</span>
+          </div>
+        </div>
+
+        <div class="period-tabs" role="tablist">
+          <button class="period-btn" data-period="1M">1개월</button>
+          <button class="period-btn" data-period="3M">3개월</button>
+          <button class="period-btn" data-period="6M">6개월</button>
+          <button class="period-btn" data-period="1Y">1년</button>
+          <button class="period-btn active" data-period="ALL">전체</button>
+        </div>
+
+        <div class="chart-wrap" style="height: 220px;">
+          <canvas id="assetLineChart"></canvas>
+        </div>
+      </section>
+
+      <!-- 목표 자산 및 자산 배분 (도넛 그래프) -->
+      <div class="sub-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+        <section class="card goal-card">
+          <h2 class="card-title">목표 자산 설정</h2>
+          <p class="card-desc">달성하고자 하는 총 자산 목표</p>
+          <div class="goal-input-wrap">
+            <input type="number" id="goalAmountInput" placeholder="목표 금액 (KRW)" min="0" step="1000000" />
+            <button type="button" class="btn-primary" id="btnSetGoal">설정</button>
+          </div>
+          <div class="goal-progress-container">
+            <div class="goal-info-row">
+              <span id="goalStatusText">진행률: 0%</span>
+              <span id="goalAmountText">0원 / 0원</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="progress-bar-fill" id="goalProgressBar" style="width: 0%;"></div>
+            </div>
+          </div>
+        </section>
+
+        <section class="card allocation-card">
+          <h2 class="card-title">자산 배분</h2>
+          <p class="card-desc">자산군별 보유 비중</p>
+          <div class="allocation-body" style="display: flex; align-items: center; gap: 12px; height: 140px;">
+            <div class="allocation-chart-wrap" style="width: 100px; height: 100px; flex-shrink: 0;">
+              <canvas id="allocationChart"></canvas>
+            </div>
+            <div class="allocation-legend" id="allocationLegend" style="flex: 1; max-height: 120px; overflow-y: auto; font-size: 11.5px;"></div>
+          </div>
+        </section>
+      </div>
+
+      <!-- 마켓 주요 일정 -->
+      <section class="card events-card">
+        <div class="card-header">
+          <div>
+            <h2 class="card-title">마켓 주요 일정</h2>
+            <p class="card-desc">주요 경제 지표 발표 및 일정 관리</p>
+          </div>
+        </div>
+
+        <div class="event-add-form">
+          <input type="date" id="newEventDate" />
+          <input type="text" id="newEventTitle" placeholder="일정 내용 입력" />
+          <select id="newEventImportance">
+            <option value="HIGH">상</option>
+            <option value="MID" selected>중</option>
+            <option value="LOW">하</option>
+          </select>
+          <button type="button" id="btnAddEvent" class="btn-secondary">추가</button>
+        </div>
+
+        <div class="events-list" id="eventsListContainer" style="max-height: 180px; overflow-y: auto;">
+        </div>
+      </section>
+
+    </div>
+
+  </div>
+</main>
+
+<div class="modal-overlay" id="assetModal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modalTitle">자산 추가</h3>
+      <button type="button" class="icon-btn" id="btnCloseModal">✕</button>
+    </div>
+
+    <form id="assetForm">
+      <input type="hidden" id="assetId" />
+
+      <div class="form-row">
+        <label for="assetType">자산 구분</label>
+        <select id="assetType" required>
+          <option value="US_STOCK">미국 주식</option>
+          <option value="KR_STOCK">국내 주식</option>
+          <option value="ETF">ETF</option>
+          <option value="CASH">현금</option>
+          <option value="GOLD">금</option>
+          <option value="PENSION">연금저축</option>
+          <option value="CRYPTO">가상자산</option>
+          <option value="OTHER">기타</option>
+        </select>
+      </div>
+
+      <div class="form-row">
+        <label for="assetName">자산명 / 종목명</label>
+        <input type="text" id="assetName" required placeholder="예: Apple, 삼성전자, 현금" />
+      </div>
+
+      <div class="form-row">
+        <label for="assetSymbol">티커 / 심볼 (선택)</label>
+        <input type="text" id="assetSymbol" placeholder="자동 입력 또는 직접 입력" />
+      </div>
+
+      <div class="form-row form-row--split">
+        <div>
+          <label for="assetQuantity">보유 수량</label>
+          <input type="number" id="assetQuantity" step="any" min="0" required />
+        </div>
+        <div>
+          <label for="assetCurrency">통화</label>
+          <select id="assetCurrency">
+            <option value="KRW">KRW</option>
+            <option value="USD">USD</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row form-row--split">
+        <div>
+          <label for="assetAvgPrice">평균 매수가</label>
+          <input type="number" id="assetAvgPrice" step="any" min="0" required />
+        </div>
+        <div>
+          <label for="assetCurrentPrice">현재가</label>
+          <input type="number" id="assetCurrentPrice" step="any" min="0" />
+        </div>
+      </div>
+
+      <div class="form-row">
+        <label for="assetExchangeRate">적용 환율 (USD/KRW)</label>
+        <input type="number" id="assetExchangeRate" step="any" min="0" required placeholder="예: 1385.5" />
+      </div>
+
+      <div class="form-row">
+        <label for="assetPurchaseDate">매수일자</label>
+        <input type="date" id="assetPurchaseDate" />
+      </div>
+
+      <div class="modal-actions">
+        <button type="button" class="btn-secondary" id="btnDeleteAsset" style="display:none;">삭제</button>
+        <button type="submit" class="btn-primary">저장</button>
+      </div>
+    </form>
+  </div>
 </div>
 
-<button id="topBtn" onclick="scrollToTop()">▲</button>
-
-<script src="data_main.js"></script>
-<script src="data_x.js"></script>
-<script src="data_y.js"></script>
-<script src="data_m.js"></script>
-<script src="data_l.js"></script>
-
-<script>
-    let allDevices = [];
-    let currentFilter = 'ALL';
-
-    const aliasMap = {
-        "리프트": "LIFT", "LIFT": "리프트",
-        "스토퍼": "STOPPER", "STOPPER": "스토퍼",
-        "실린더": "CYLINDER", "CYLINDER": "실린더",
-        "센서": "SENSOR", "SENSOR": "센서",
-        "모터": "MOTOR", "MOTOR": "모터",
-        "디버터":"DIVERTER", "DIVERTER":"디버터",
-        "메인":"MAIN", "MAIN":"메인",
-        "인버터":"INVERTER", "INVERTER":"인버터",
-        "컨베어":"C/V", "C/V":"컨베어"
-    };
-
-    window.onload = function() {
-        try {
-            const dMain = (typeof devicesmain !== 'undefined') ? devicesmain : 
-                          (typeof devicesMain !== 'undefined' ? devicesMain : []);
-            const dx = (typeof devicesx !== 'undefined') ? devicesx : (typeof devicesX !== 'undefined' ? devicesX : []);
-            const dy = (typeof devicesy !== 'undefined') ? devicesy : (typeof devicesY !== 'undefined' ? devicesY : []);
-            const dm = (typeof devicesm !== 'undefined') ? devicesm : (typeof devicesM !== 'undefined' ? devicesM : []);
-            const dl = (typeof devicesl !== 'undefined') ? devicesl : (typeof devicesL !== 'undefined' ? devicesL : []);
-
-            allDevices = [...dMain, ...dx, ...dy, ...dm, ...dl];
-
-            document.getElementById('countInfo').innerText = 
-                `주요:${dMain.length} X:${dx.length} Y:${dy.length} M/L:${dm.length + dl.length}`;
-            
-            search(); 
-
-            document.getElementById('scrollTarget').addEventListener('scroll', checkScroll);
-            window.addEventListener('scroll', checkScroll);
-
-        } catch (e) {
-            console.error("데이터 로드 오류:", e);
-        }
-    };
-
-    function checkScroll() {
-        const btn = document.getElementById("topBtn");
-        const wrapper = document.getElementById('scrollTarget');
-        if (window.pageYOffset > 200 || wrapper.scrollTop > 200) {
-            btn.style.display = "flex";
-        } else {
-            btn.style.display = "none";
-        }
-    }
-
-    function scrollToTop() {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        document.getElementById('scrollTarget').scrollTo({ top: 0, behavior: 'smooth' });
-    }
-
-    function handleSearch(input) {
-        document.getElementById('clearBtn').style.display = input.value.length > 0 ? 'block' : 'none';
-        search();
-    }
-
-    function clearSearch() {
-        const input = document.getElementById('searchInput');
-        input.value = '';
-        document.getElementById('clearBtn').style.display = 'none';
-        input.focus();
-        search();
-    }
-
-    function setFilter(type) {
-        currentFilter = type;
-        document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById('btn-' + type).classList.add('active');
-        search();
-    }
-
-    function search() {
-        const input = document.getElementById('searchInput').value.trim().toUpperCase();
-        const searchTerms = input.split(' ').filter(term => term !== '');
-        const tbody = document.getElementById('resultBody');
-        const noData = document.getElementById('noData');
-        tbody.innerHTML = '';
-
-        const filtered = allDevices.filter(item => {
-            const dev = (item.device || "").toUpperCase();
-            const com = (item.comment || "").toUpperCase();
-
-            if (currentFilter === '주요접점') {
-                if (!item.isMain) return false;
-            } else if (currentFilter === 'X') {
-                if (!dev.startsWith('X')) return false;
-            } else if (currentFilter === 'Y') {
-                if (!dev.startsWith('Y')) return false;
-            } else if (currentFilter === 'ML') {
-                if (!(dev.startsWith('M') || dev.startsWith('L'))) return false;
-            }
-
-            if (searchTerms.length === 0) return true;
-
-            return searchTerms.every(term => {
-                const alias = aliasMap[term] || "";
-                if (['X', 'Y', 'M', 'L'].some(sym => term.includes(sym))) return dev.includes(term);
-                if (/^\d+$/.test(term)) {
-                    const regex = new RegExp(`(?<!\\d)${term}(?!\\d)`);
-                    return regex.test(com);
-                }
-                return com.includes(term) || (alias && com.includes(alias)) || dev.includes(term);
-            });
-        });
-
-        if (filtered.length > 0) {
-            noData.style.display = 'none';
-            const fragment = document.createDocumentFragment();
-            filtered.slice(0, 500).forEach(item => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td><strong>${item.device}</strong></td><td>${item.comment}</td><td class="rtb-cell">${item.rtb || '-'}</td>`;
-                fragment.appendChild(tr);
-            });
-            tbody.appendChild(fragment);
-        } else {
-            noData.style.display = 'block';
-        }
-    }
-</script>
+<script src="js/market.js"></script>
+<script src="js/assets.js"></script>
+<script src="js/chart.js"></script>
+<script src="js/events.js"></script>
+<script src="js/app.js"></script>
 </body>
 </html>
